@@ -1,13 +1,11 @@
 import { type Request, type Response } from "express"
 
-interface Habit {
-  name: string
-}
-
+import { habitModel } from "../Models/habitModel"
 export class HabitsController {
-  private readonly habits: Habit[] = []
-
-  public store = (request: Request, response: Response): Response => {
+  public store = async (
+    request: Request,
+    response: Response,
+  ): Promise<Response> => {
     const { name } = request.body
 
     // Verificando se 'name' foi fornecido e é uma string
@@ -16,9 +14,10 @@ export class HabitsController {
         .status(400)
         .json({ error: "Name is required and must be a string" })
     }
-    const newHabit: Habit = { name }
-
-    this.habits.push(newHabit)
+    const newHabit = await habitModel.create({
+      name,
+      completedDates: [],
+    })
 
     return response.status(201).json(newHabit)
   }
