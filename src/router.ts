@@ -14,3 +14,4 @@ routes.get("/", (request, response) => {
 })
 
 routes.post("/habits", habitsController.store) // virgula o controller que tem a rota de post configurada ponto store exemplo: habitsController.store
+routes.get("/habits", habitsController.index) // aqui vamos listar todos os hábitos
