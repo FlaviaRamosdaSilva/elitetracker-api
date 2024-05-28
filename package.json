@@ -30,6 +30,7 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "dayjs": "^1.11.11",
     "express": "^4.19.2",
     "mongoose": "^8.4.0",
     "zod": "^3.23.8"
