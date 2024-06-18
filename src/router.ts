@@ -18,6 +18,7 @@ routes.get("/", (request, response) => {
 
 routes.post("/habits", habitsController.store) // virgula o controller que tem a rota de post configurada ponto store exemplo: habitsController.store
 routes.get("/habits", habitsController.index) // aqui vamos listar todos os hábitos
+routes.get("/habits/:id/metrics", habitsController.metrics)
 routes.delete("/habits/:id", habitsController.delete) // aqui vamos listar todos os hábitos
 routes.patch("/habits/:id/toggle", habitsController.toggle) // aqui vamos colocar a marcação e desmarcação, conforme id.
 

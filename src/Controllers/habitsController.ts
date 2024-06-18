@@ -1,9 +1,10 @@
 import dayjs from "dayjs"
 import { type Request, type Response } from "express"
+import mongoose from "mongoose"
 import { z } from "zod"
 
 import { habitModel } from "../Models/habitModel"
-import { builValidationErrorMessage } from "../Utils/build.validation.error.message"
+import { buildValidationErrorMessage } from "../Utils/build.validation.error.message"
 export class HabitsController {
   public store = async (
     request: Request,
@@ -20,7 +21,7 @@ export class HabitsController {
 
     if (!habit.success) {
       // aqui caso não seja trazido true no succcess do zod, ele manda essa mensagem de erro
-      const errors = builValidationErrorMessage(habit.error.issues)
+      const errors = buildValidationErrorMessage(habit.error.issues)
       return response.status(422).json({ message: errors }) // caso de tudo certo ele continua a aplicação abaixo
     }
 
@@ -57,7 +58,7 @@ export class HabitsController {
 
     if (!habit.success) {
       // aqui caso não seja trazido true no succcess do zod, ele manda essa mensagem de erro
-      const errors = builValidationErrorMessage(habit.error.issues)
+      const errors = buildValidationErrorMessage(habit.error.issues)
       return response.status(422).json({ message: errors }) // caso de tudo certo ele continua a aplicação abaixo
     }
 
@@ -86,7 +87,7 @@ export class HabitsController {
 
     if (!validated.success) {
       // aqui caso não seja trazido true no succcess do zod, ele manda essa mensagem de erro
-      const errors = builValidationErrorMessage(validated.error.issues)
+      const errors = buildValidationErrorMessage(validated.error.issues)
       return response.status(422).json({ message: errors }) // caso de tudo certo ele continua a aplicação abaixo
     }
 
@@ -135,5 +136,52 @@ export class HabitsController {
       },
     )
     return response.status(200).json(habitUpdated)
+  }
+
+  public metrics = async (request: Request, response: Response) => {
+    const schema = z.object({
+      id: z.string(), // tipamos o name como uma string utilizando Zod, tal qual utilizamos com YUP
+      date: z.coerce.date(),
+    })
+    const validated = schema.safeParse({ ...request.params, ...request.query })
+    // usamos o spredoparation (retissencias) para poder pegar tudo e armazenar em  um objeto só.
+
+    if (!validated.success) {
+      const error = buildValidationErrorMessage(validated.error.issues)
+
+      return response.status(422).json({ message: error })
+    }
+
+    const dateFrom = dayjs(validated.data.date).startOf("month").toDate()
+    const dateTo = dayjs(validated.data.date).endOf("month").toDate()
+
+    const [habitMetrics] = await habitModel
+      .aggregate()
+      .match({
+        // colocamos em um array [] para que ele retorne um array na resposta
+        _id: new mongoose.Types.ObjectId(validated.data.id),
+      })
+      .project({
+        _id: 1,
+        name: 1,
+        completedDates: {
+          $filter: {
+            input: "$completedDates",
+            as: "completedDates",
+            cond: {
+              $and: [
+                {
+                  $gte: ["$$completedDates", dateFrom],
+                },
+                {
+                  $lte: ["$$completedDates", dateTo],
+                },
+              ],
+            },
+          },
+        },
+      })
+
+    return response.status(200).json(habitMetrics)
   }
 }
