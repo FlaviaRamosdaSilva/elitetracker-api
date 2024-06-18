@@ -152,13 +152,13 @@ export class HabitsController {
       return response.status(422).json({ message: error })
     }
 
-    const dateFrom = dayjs(validated.data.date).startOf("month").toDate()
-    const dateTo = dayjs(validated.data.date).endOf("month").toDate()
+    const dateFrom = dayjs(validated.data.date).startOf("month")
+    const dateTo = dayjs(validated.data.date).endOf("month")
 
     const [habitMetrics] = await habitModel
       .aggregate()
       .match({
-        // colocamos em um array [] para que ele retorne um array na resposta
+        // colocamos habitMetrics em um array [] para que ele retorne um array na resposta
         _id: new mongoose.Types.ObjectId(validated.data.id),
       })
       .project({
@@ -171,16 +171,20 @@ export class HabitsController {
             cond: {
               $and: [
                 {
-                  $gte: ["$$completedDates", dateFrom],
+                  $gte: ["$$completedDates", dateFrom.toDate()],
                 },
                 {
-                  $lte: ["$$completedDates", dateTo],
+                  $lte: ["$$completedDates", dateTo.toDate()],
                 },
               ],
             },
           },
         },
       })
+
+    if (!habitMetrics) {
+      return response.status(404).json({ message: "Habit not found" })
+    }
 
     return response.status(200).json(habitMetrics)
   }
