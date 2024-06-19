@@ -23,3 +23,4 @@ routes.delete("/habits/:id", habitsController.delete) // aqui vamos listar todos
 routes.patch("/habits/:id/toggle", habitsController.toggle) // aqui vamos colocar a marcação e desmarcação, conforme id.
 
 routes.post("/focus-time", focusTimeController.store)
+routes.get("/focus-time/metrics", focusTimeController.MetricsByMonth)
